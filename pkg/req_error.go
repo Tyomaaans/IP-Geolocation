@@ -1,0 +1,9 @@
+package pkg
+
+import (
+	"errors"
+)
+
+var (
+	ErrInvalidInput = errors.New("")
+)
