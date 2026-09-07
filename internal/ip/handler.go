@@ -35,7 +35,7 @@ func httpError(c *gin.Context, err error) {
 }
 
 func (h *IpHandler) TrackVisit(c *gin.Context) {
-	ip := "103.168.186.82"
+	ip := c.ClientIP()
 	ua := c.GetHeader("User-Agent")
 
 	log.Printf("ip: %s", ip)
