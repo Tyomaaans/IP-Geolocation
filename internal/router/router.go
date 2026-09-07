@@ -25,13 +25,13 @@ func NewUserRouter(
 		{
 			ip.GET("", ipHandler.TrackVisit)
 
-			ip.GET("visits/:id", ipHandler.GetIpVisitByID)
-			ip.GET("visits/:ip", ipHandler.GetIpVisitByIP)
+			ip.GET("/visits/id/:id", ipHandler.GetIpVisitByID)
+			ip.GET("/visits/ip/:ip", ipHandler.GetIpVisitByIP)
 			ip.GET("/visits", ipHandler.GetIpVisits)
 			ip.GET("/visits/today", ipHandler.GetTodayIpVisits)
 
-			ip.GET("/histories/:id", ipHandler.GetIpHistoryByID)
-			ip.GET("histories/:ip", ipHandler.GetIpHistoriesByIP)
+			ip.GET("/histories/id/:id", ipHandler.GetIpHistoryByID)
+			ip.GET("/histories/ip/:ip", ipHandler.GetIpHistoriesByIP)
 			ip.GET("/histories", ipHandler.GetIpHistories)
 			ip.GET("/histories/today", ipHandler.GetTodayIpHistories)
 		}
