@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,12 +12,18 @@ import (
 
 	"ip-geo/internal/config"
 	"ip-geo/internal/infrastructure/client/ipgeo"
+	"ip-geo/internal/infrastructure/rabbitmq"
+	"ip-geo/internal/infrastructure/redis"
 	"ip-geo/internal/infrastructure/sqlite"
 	"ip-geo/internal/ip"
 	"ip-geo/internal/router"
 )
 
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+	
 	cfg := config.NewConfig()
 
 	db, err := sqlite.NewSQLiteDB(cfg.DSN)
@@ -25,9 +32,11 @@ func main() {
 	}
 
 	ipGeoClient := ipgeo.NewIpGeoClient(cfg.IpGeo)
+	redisClient := redis.NewRedisClient(cfg.REDISaddr, cfg.REDISpassword)
+	rmq, _      := rabbitmq.NewRabbitMQClient(cfg.RabbitMQ, logger)
 
 	ipRepo    := ip.NewIpRepository(db)
-	ipSvc     := ip.NewIpService(ipRepo, ipGeoClient)
+	ipSvc     := ip.NewIpService(ipRepo, ipGeoClient, redisClient, rmq.Channel())
 	ipHandler := ip.NewIpHandler(ipSvc)
 
 	r := routes.NewUserRouter(ipHandler)
@@ -44,6 +53,13 @@ func main() {
 		log.Printf("Server running on :%s", cfg.APPport)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+
+	go func() {
+		ctx := context.Background()
+		if err := rmq.StartWorker(ctx, ipSvc); err != nil {
+			logger.Error("rabbitmq: worker stopped with error", slog.Any("error", err))
 		}
 	}()
 

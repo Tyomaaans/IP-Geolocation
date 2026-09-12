@@ -8,9 +8,12 @@ import (
 )
 
 type AppConfig struct {
-	APPport string
-	DSN     string
-	IpGeo   string
+	APPport       string
+	DSN           string
+	REDISaddr     string
+	REDISpassword string
+	RabbitMQ      string
+	IpGeo         string
 }
 
 func NewConfig() AppConfig {
@@ -29,14 +32,33 @@ func NewConfig() AppConfig {
 		log.Fatal("DATABASE_URL environtment variable is required!")
 	}
 
+	redisAddr := os.Getenv("REDIS_ADDR")
+    if redisAddr == "" {
+        log.Fatal("REDIS_ADDR environment variable is required!")
+    }
+
+	redisPassword := os.Getenv("REDIS_PASSWORD")
+	if redisPassword == "" {
+        log.Fatal("REDIS_PASSWORD environment variable is required!")
+    }
+
+	rabbitMQ := os.Getenv("RABBITMQ_DSN")
+	if rabbitMQ == "" {
+		log.Fatal("RABBITMQ_DSN environment variable is required!")
+
+	}
+
 	ipGeo := os.Getenv("IPGEO_API_KEY")
 	if ipGeo == "" {
 		log.Fatal("ADMIN_SECRET_KEY environment variable is required!")
 	}
 
 	return AppConfig{
-		APPport: appPort,
-		DSN:     dsn,
-		IpGeo:   ipGeo,
+		APPport:       appPort,
+		DSN:           dsn,
+		REDISaddr:     redisAddr,
+		REDISpassword: redisPassword,
+		RabbitMQ:      rabbitMQ,
+		IpGeo:         ipGeo,
 	}
 }
